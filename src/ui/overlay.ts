@@ -2,6 +2,7 @@ import { PoseLandmarker } from '@mediapipe/tasks-vision';
 import type { FrameSnapshot } from '../app/state';
 import { VISIBILITY_THRESHOLD } from '../detection/aimPoint';
 import type { Person, Point } from '../types';
+import { clientToFrame } from './fit';
 
 export const COLORS = {
   target: '#35d0ff',
@@ -20,12 +21,10 @@ export class Overlay {
 
   constructor(private canvas: HTMLCanvasElement, private video: HTMLVideoElement, onClick: (p: Point) => void) {
     this.ctx = canvas.getContext('2d')!;
+    // The canvas is contain-fitted, so clicks on the letterbox bars are ignored.
     canvas.addEventListener('click', (e) => {
-      const r = canvas.getBoundingClientRect();
-      onClick({
-        x: ((e.clientX - r.left) / r.width) * this.video.videoWidth,
-        y: ((e.clientY - r.top) / r.height) * this.video.videoHeight,
-      });
+      const p = clientToFrame({ x: e.clientX, y: e.clientY }, canvas.getBoundingClientRect(), canvas.width, canvas.height);
+      if (p) onClick(p);
     });
   }
 

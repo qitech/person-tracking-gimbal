@@ -6,6 +6,7 @@ import { Charts } from './ui/charts';
 import { Controls } from './ui/controls';
 import { DebugPanel } from './ui/debugPanel';
 import { Gimbal3D } from './ui/gimbal3d';
+import { MobileShell } from './ui/mobileShell';
 import { Overlay } from './ui/overlay';
 import { StatusOverlay, type StatusKind } from './ui/status';
 import { STATE_LABELS, VirtualView } from './ui/virtualView';
@@ -114,6 +115,11 @@ async function main() {
   const metrics = $('#metrics');
   const stages = [$('#full'), $('#virtual-stage')];
   bindKeyboard(app);
+  const shell = new MobileShell({ quick: controls.quick, advanced: controls.advanced, charts: $('.p-charts'), gimbal: $('.p-gimbal') });
+  const phone = matchMedia('(max-width: 767px)');
+  const applyLayout = () => (phone.matches ? shell.attach() : shell.detach());
+  applyLayout();
+  phone.addEventListener('change', applyLayout);
   const debug = location.search.includes('debug') ? new DebugPanel(video, $('#full'), $<HTMLCanvasElement>('#overlay')) : null;
 
   $('#presentation-toggle').addEventListener('click', () => {
@@ -126,11 +132,12 @@ async function main() {
   app.onFrame((s) => {
     const ratio = `${s.frameWidth} / ${s.frameHeight}`;
     for (const st of stages) if (st.style.aspectRatio !== ratio) st.style.aspectRatio = ratio;
+    document.body.style.setProperty('--frame-ar', String(s.frameWidth / s.frameHeight));
     const mode = app.getSettings().mode;
     overlay.render(s);
     virtualView.render(s, mode);
-    gimbal3d.render(s);
-    charts.push(s);
+    if (shell.isShown('gimbal')) gimbal3d.render(s);
+    charts.push(s, shell.isShown('charts'));
     controls.render(s);
     debug?.render(s);
 

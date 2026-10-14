@@ -60,7 +60,7 @@ body.presentation .grid { grid-template-areas: 'full virtual' 'full gimbal' 'cha
 .panel-title small { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 6px; opacity: 0.8; }
 
 .stage { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 6px; overflow: hidden; }
-.stage video, .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage video, .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; }
 /* The overlay canvas paints the frame; the <video> only feeds pixels (kept rendered so iOS keeps decoding). */
 #full video { opacity: 0; }
 #full canvas { cursor: crosshair; }
@@ -95,6 +95,7 @@ body.presentation .grid { grid-template-areas: 'full virtual' 'full gimbal' 'cha
 #charts .u-legend .u-marker { border-radius: 2px; }
 
 .p-controls { gap: 12px; }
+.ctl-quick { display: flex; flex-direction: column; gap: 12px; }
 .ctl-row { display: flex; align-items: center; gap: 10px; }
 .ctl-wrap { align-items: flex-start; }
 .ctl-label { width: 84px; flex-shrink: 0; font-size: 13px; color: var(--muted); padding-top: 6px; }
@@ -114,3 +115,57 @@ body.presentation .grid { grid-template-areas: 'full virtual' 'full gimbal' 'cha
 .slider-val { font: 12px ui-monospace, Menlo, monospace; text-align: right; color: var(--text); }
 .slider-row select { grid-column: 2 / 4; font: inherit; background: #1b2430; color: var(--text); border: 1px solid #2a3542; border-radius: 6px; padding: 4px 6px; }
 input[type='range'] { width: 100%; accent-color: var(--accent); }
+
+/* ---------- Phone layout (body.mobile is set by MobileShell) ---------- */
+body.mobile {
+  height: 100dvh; min-height: 0; overflow: hidden; overscroll-behavior: none;
+  display: flex; flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+}
+body.mobile .topbar { padding: 8px 12px; gap: 8px; }
+body.mobile .topbar h1 { font-size: 16px; }
+body.mobile .topbar h1 span, body.mobile #presentation-toggle { display: none; }
+body.mobile .metrics { gap: 10px; }
+body.mobile .metrics span:nth-child(2), body.mobile .metrics span:nth-child(3) { display: none; }
+
+body.mobile .grid { flex: 1; min-height: 0; display: block; position: relative; padding: 0; }
+body.mobile .p-full { position: absolute; inset: 8px; padding: 0; border: 0; background: transparent; }
+body.mobile .p-controls { display: none; }
+body.mobile .p-full .panel-title { display: none; }
+body.mobile .p-full .stage { aspect-ratio: auto !important; height: 100%; border-radius: 12px; }
+
+/* Virtual camera as picture-in-picture, sized so its frame-shaped box never exceeds ~30% of the height. */
+body.mobile .p-virtual {
+  position: absolute; top: 16px; right: 16px; z-index: 2; padding: 0; gap: 0;
+  width: min(36vw, calc(30dvh * var(--frame-ar, 0.5625)));
+  border: 2px solid rgba(230, 236, 245, 0.35); border-radius: 10px; overflow: hidden; background: #000;
+}
+body.mobile .p-virtual .panel-title { display: none; }
+body.mobile .p-virtual .stage { border-radius: 0; }
+
+.mobile-bar {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: var(--panel); border-top: 1px solid var(--panel-border);
+}
+.mobile-bar .ctl-quick { gap: 8px; }
+.mobile-bar .ctl-label, .mobile-bar .ctl-hint { display: none; }
+.mobile-bar .btn { padding: 8px 12px; font-size: 14px; }
+.mobile-bar .slider-row { grid-template-columns: 36px 1fr 52px; }
+.mobile-bar .manual-box { padding: 6px 8px; }
+
+.sheet-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 14; }
+.sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; height: 72dvh; z-index: 15;
+  display: flex; flex-direction: column; background: var(--panel);
+  border-top: 1px solid var(--panel-border); border-radius: 16px 16px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateY(100%); transition: transform 0.25s ease;
+}
+.sheet.open { transform: none; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid var(--panel-border); }
+.sheet-body { flex: 1; min-height: 0; overflow-y: auto; padding: 12px; }
+.sheet-pane[hidden] { display: none; }
+.sheet-pane .panel { border: 0; padding: 0; background: transparent; }
+.sheet-pane .slider-row { grid-template-columns: 120px 1fr 56px; }

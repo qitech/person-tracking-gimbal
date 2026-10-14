@@ -71,7 +71,8 @@ export class Charts {
     new ResizeObserver(() => this.resize()).observe(container);
   }
 
-  push(s: FrameSnapshot): void {
+  /** Always records; draws only when `draw` (hidden charts on phones skip the work). */
+  push(s: FrameSnapshot, draw = true): void {
     this.t.push(s.nowS);
     this.errPan.push(s.error ? s.error.pan : null);
     this.errTilt.push(s.error ? s.error.tilt : null);
@@ -83,7 +84,7 @@ export class Charts {
     while (drop < this.t.length && this.t[drop] < s.nowS - WINDOW_S) drop++;
     if (drop) for (const a of [this.t, this.errPan, this.errTilt, this.pan, this.tilt]) a.splice(0, drop);
 
-    if (s.nowS - this.lastDraw < MIN_REDRAW_S) return;
+    if (!draw || s.nowS - this.lastDraw < MIN_REDRAW_S) return;
     this.lastDraw = s.nowS;
     const x = this.t.map((v) => v - s.nowS);
     this.errorPlot.setData([x, this.errPan, this.errTilt]);

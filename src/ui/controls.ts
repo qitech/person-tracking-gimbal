@@ -42,6 +42,10 @@ export class Controls {
   private manualSliders: { pan: HTMLInputElement; tilt: HTMLInputElement; panVal: HTMLElement; tiltVal: HTMLElement };
   private sliders: { spec: SliderSpec; input: HTMLInputElement; value: HTMLElement }[] = [];
   private aimSelect: HTMLSelectElement;
+  /** Mode, presets and manual sliders: the bottom bar on phones. */
+  readonly quick: HTMLElement;
+  /** Advanced settings: a sheet tab on phones. */
+  readonly advanced: HTMLDetailsElement;
 
   constructor(container: HTMLElement, private app: App) {
     container.append(el('div', 'panel-title', 'Керування'));
@@ -117,7 +121,10 @@ export class Controls {
     aimRow.append(el('span', 'slider-name', 'Точка наведення'), this.aimSelect);
     details.append(aimRow);
 
-    container.append(modeRow, presetRow, this.manualBox, details);
+    this.quick = el('div', 'ctl-quick');
+    this.quick.append(modeRow, presetRow, this.manualBox);
+    this.advanced = details;
+    container.append(this.quick, details);
     this.sync();
   }
 
