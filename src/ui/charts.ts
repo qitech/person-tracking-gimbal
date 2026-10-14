@@ -18,7 +18,8 @@ const axis = (label: string): uPlot.Axis => ({
   size: 44,
 });
 
-const timeAxis: uPlot.Axis = { ...axis(''), values: (_u, vals) => vals.map((v) => `${v.toFixed(0)} с`) };
+const timeAxis: uPlot.Axis = { ...axis(''), incrs: [1, 2, 5, 10], values: (_u, vals) => vals.map((v) => `${v.toFixed(0)} с`) };
+const timeSeries: uPlot.Series = { label: 'час', value: (_u, v) => (v == null ? '–' : `${v.toFixed(1)} с`) };
 
 /** Rolling 10 s plots of tracking error and gimbal angles. */
 export class Charts {
@@ -42,7 +43,7 @@ export class Charts {
         scales: { x: { time: false }, y: { range: (_u, min, max) => { const m = Math.max(3, Math.abs(min ?? 0), Math.abs(max ?? 0)); return [-m, m]; } } },
         axes: [timeAxis, axis('')],
         series: [
-          {},
+          timeSeries,
           { label: 'pan', stroke: PAN, width: 2, spanGaps: false },
           { label: 'tilt', stroke: TILT, width: 2, spanGaps: false },
         ],
@@ -57,7 +58,7 @@ export class Charts {
         scales: { x: { time: false } },
         axes: [timeAxis, axis('')],
         series: [
-          {},
+          timeSeries,
           { label: 'pan', stroke: PAN, width: 2 },
           { label: 'tilt', stroke: TILT, width: 2 },
           { label: 'межа pan', stroke: LIMIT, width: 1, dash: [6, 4] },

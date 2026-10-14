@@ -109,6 +109,11 @@ export function createApp(deps: { video: HTMLVideoElement; detector: PoseDetecto
     if (settings.mode === 'manual') {
       const out = controller.step(controllerInput(dt));
       driver!.setVelocityCommand(out.panVel, out.tiltVel);
+      // While steering with keys, the slider target follows the platform so it doesn't snap back on release.
+      if (keys.left || keys.right || keys.up || keys.down) {
+        const g = driver!.getState();
+        settings = { ...settings, manual: { pan: g.pan, tilt: g.tilt } };
+      }
     }
     driver!.update(dt);
 
