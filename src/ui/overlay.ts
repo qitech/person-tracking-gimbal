@@ -10,7 +10,11 @@ export const COLORS = {
   aim: '#ff4d6d',
 };
 
-/** Full-frame canvas: skeletons, aim point, virtual FOV window and the error line. */
+/**
+ * Full-frame canvas: the camera frame itself, then skeletons, aim point, FOV window and error line.
+ * The frame is painted here rather than shown via <video>: iOS Safari paints a camera <video>
+ * out of sync with its CSS box, which made the markings drift off the image.
+ */
 export class Overlay {
   private ctx: CanvasRenderingContext2D;
 
@@ -32,7 +36,7 @@ export class Overlay {
       canvas.height = s.frameHeight;
     }
     const lw = Math.max(2, s.frameWidth / 400);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(this.video, 0, 0, s.frameWidth, s.frameHeight);
 
     s.people.forEach((p, i) => {
       if (i !== s.tracker.targetIndex) this.drawSkeleton(p, COLORS.other, lw);
