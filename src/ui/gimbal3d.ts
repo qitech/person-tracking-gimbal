@@ -14,6 +14,7 @@ export class Gimbal3D {
   private yaw = new THREE.Group();
   private pitch = new THREE.Group();
   private cone: THREE.Mesh;
+  private coneEdges: THREE.LineSegments;
   private coneHfov = 0;
   private observer: ResizeObserver;
 
@@ -22,9 +23,9 @@ export class Gimbal3D {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(this.renderer.domElement);
 
-    this.camera.position.set(2.4, 2.0, 3.6);
+    this.camera.position.set(3.0, 2.3, 1.8);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, 0.7, -0.6);
+    this.controls.target.set(0, 0.7, -1.1);
     this.controls.enableDamping = true;
     this.controls.update();
 
@@ -36,7 +37,7 @@ export class Gimbal3D {
     this.scene.add(grid);
 
     const metal = new THREE.MeshStandardMaterial({ color: 0x4a5868, metalness: 0.6, roughness: 0.45 });
-    const dark = new THREE.MeshStandardMaterial({ color: 0x20262e, metalness: 0.3, roughness: 0.6 });
+    const dark = new THREE.MeshStandardMaterial({ color: 0x3a4655, metalness: 0.3, roughness: 0.55 });
     const accent = new THREE.MeshStandardMaterial({ color: 0x35d0ff, emissive: 0x0b3a4a, roughness: 0.4 });
 
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.18, 48), dark);
@@ -71,6 +72,12 @@ export class Gimbal3D {
     );
     this.cone.position.z = -0.38;
     this.pitch.add(this.cone);
+    this.coneEdges = new THREE.LineSegments(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial({ color: 0xffb547, transparent: true, opacity: 0.8 }),
+    );
+    this.coneEdges.position.z = -0.38;
+    this.pitch.add(this.coneEdges);
 
     this.observer = new ResizeObserver(() => this.resize());
     this.observer.observe(container);
@@ -109,5 +116,7 @@ export class Gimbal3D {
     g.scale(1, 9 / 16, 1); // match the frame aspect
     this.cone.geometry.dispose();
     this.cone.geometry = g;
+    this.coneEdges.geometry.dispose();
+    this.coneEdges.geometry = new THREE.EdgesGeometry(g);
   }
 }
