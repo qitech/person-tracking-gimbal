@@ -75,3 +75,15 @@ describe('velocityTowards', () => {
     expect(velocityTowards(-10, 0, 4, 30)).toBe(-30);
   });
 });
+
+describe('Pid deadband with integral', () => {
+  test('inside deadband the integral does not drive the output', () => {
+    const c = new Pid({ ...base, kp: 1, ki: 1 });
+    for (let i = 0; i < 10; i++) c.update(5, 0, 0.1); // build up integral
+    expect(c.integral).toBeGreaterThan(0);
+    const held = c.integral;
+    expect(c.update(5, 4.6, 0.1)).toBe(0); // error 0.4 < deadband, measurement unchanged next call
+    expect(c.update(5, 4.6, 0.1)).toBe(0);
+    expect(c.integral).toBe(held);
+  });
+});

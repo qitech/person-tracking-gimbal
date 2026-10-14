@@ -1,4 +1,4 @@
-export type CameraErrorKind = 'denied' | 'notFound' | 'unsupported' | 'other';
+export type CameraErrorKind = 'denied' | 'notFound' | 'busy' | 'unsupported' | 'other';
 
 export class CameraError extends Error {
   constructor(readonly kind: CameraErrorKind, message: string) {
@@ -7,22 +7,34 @@ export class CameraError extends Error {
   }
 }
 
+export function classifyCameraError(e: unknown): CameraErrorKind {
+  switch ((e as { name?: string })?.name) {
+    case 'NotAllowedError':
+    case 'SecurityError':
+      return 'denied';
+    case 'NotFoundError':
+    case 'OverconstrainedError':
+      return 'notFound';
+    case 'NotReadableError': // camera held by another app (Zoom, Teams…)
+    case 'AbortError':
+      return 'busy';
+    default:
+      return 'other';
+  }
+}
+
 export async function startCamera(video: HTMLVideoElement): Promise<void> {
   if (!navigator.mediaDevices?.getUserMedia) throw new CameraError('unsupported', 'getUserMedia is not available');
-  let stream: MediaStream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
+    const stream = await navigator.mediaDevices.getUserMedia({
       video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
       audio: false,
     });
+    video.srcObject = stream;
+    video.muted = true;
+    video.playsInline = true;
+    await video.play();
   } catch (e) {
-    const name = (e as DOMException)?.name;
-    if (name === 'NotAllowedError' || name === 'SecurityError') throw new CameraError('denied', String(e));
-    if (name === 'NotFoundError' || name === 'OverconstrainedError') throw new CameraError('notFound', String(e));
-    throw new CameraError('other', String(e));
+    throw new CameraError(classifyCameraError(e), String(e));
   }
-  video.srcObject = stream;
-  video.muted = true;
-  video.playsInline = true;
-  await video.play();
 }

@@ -20,7 +20,7 @@ function isSupported(): boolean {
 
 const cameraStatus = (e: unknown): StatusKind => {
   if (!(e instanceof CameraError)) return 'error';
-  return ({ denied: 'cameraDenied', notFound: 'cameraNotFound', unsupported: 'unsupported', other: 'error' } as const)[e.kind];
+  return ({ denied: 'cameraDenied', notFound: 'cameraNotFound', busy: 'cameraBusy', unsupported: 'unsupported', other: 'error' } as const)[e.kind];
 };
 
 function startVideo(video: HTMLVideoElement): Promise<void> {
@@ -64,7 +64,7 @@ async function main() {
   }
 
   status.show('loading', 0);
-  let cameraPromise = startVideo(video);
+  const cameraPromise = startVideo(video);
   cameraPromise.catch(() => {}); // handled below, after the model finishes loading
   const detector = await PoseDetector.create({
     wasmBase: './wasm',
@@ -73,20 +73,36 @@ async function main() {
   });
 
   // Keep asking for the camera until it works; the retry button re-requests it.
-  for (;;) {
-    try {
-      await cameraPromise;
-      break;
-    } catch (e) {
-      console.error(e);
-      const kind = cameraStatus(e);
-      status.show(kind);
-      if (kind !== 'cameraDenied' && kind !== 'cameraNotFound') return;
-      await new Promise<void>((resolve) => { retryCamera = resolve; });
-      cameraPromise = startVideo(video);
+  let cameraLost = false;
+  const acquireCamera = async (first: Promise<void>): Promise<boolean> => {
+    let attempt = first;
+    for (;;) {
+      try {
+        await attempt;
+        break;
+      } catch (e) {
+        console.error(e);
+        const kind = cameraStatus(e);
+        status.show(kind);
+        if (kind !== 'cameraDenied' && kind !== 'cameraNotFound' && kind !== 'cameraBusy') return false;
+        await new Promise<void>((resolve) => { retryCamera = resolve; });
+        attempt = startVideo(video);
+      }
     }
-  }
-  status.show('none');
+    // Camera unplugged or permission revoked mid-run: the loop's watchdog holds the platform,
+    // and the user gets the same retry screen as at start-up.
+    const track = (video.srcObject as MediaStream | null)?.getVideoTracks?.()[0];
+    track?.addEventListener('ended', () => {
+      cameraLost = true;
+      status.show('cameraNotFound');
+      retryCamera = () => {
+        acquireCamera(startVideo(video)).then((ok) => { if (ok) cameraLost = false; });
+      };
+    });
+    status.show('none');
+    return true;
+  };
+  if (!(await acquireCamera(cameraPromise))) return;
 
   const app = createApp({ video, detector });
   const overlay = new Overlay($<HTMLCanvasElement>('#overlay'), video, (p) => app.selectAt(p));
@@ -116,7 +132,7 @@ async function main() {
     controls.render(s);
 
     if (!lastSeenS || s.people.length) lastSeenS = s.nowS;
-    status.show(s.nowS - lastSeenS > NO_PERSON_DELAY_S ? 'noPerson' : 'none');
+    if (!cameraLost) status.show(s.nowS - lastSeenS > NO_PERSON_DELAY_S ? 'noPerson' : 'none');
 
     if (s.nowS - lastMetricsS > 0.25) {
       lastMetricsS = s.nowS;

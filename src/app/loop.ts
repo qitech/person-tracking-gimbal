@@ -21,6 +21,8 @@ export interface App {
 
 const NO_KEYS = { left: false, right: false, up: false, down: false };
 const FPS_ALPHA = 0.1;
+/** Hold position if no successful detection arrives for this long (stalled camera, failing detector). */
+const WATCHDOG_S = 0.3;
 
 export function createApp(deps: { video: HTMLVideoElement; detector: PoseDetector }): App {
   const { video, detector } = deps;
@@ -46,6 +48,7 @@ export function createApp(deps: { video: HTMLVideoElement; detector: PoseDetecto
   let targetAngles: { pan: number; tilt: number } | null = null;
   let fps = 0;
   let detectMs = 0;
+  let watchdogTripped = false;
 
   function ensureModel(): void {
     const W = video.videoWidth, H = video.videoHeight;
@@ -74,6 +77,7 @@ export function createApp(deps: { video: HTMLVideoElement; detector: PoseDetecto
       people = detector.detect(video, ts);
     } catch (e) {
       console.error('Pose detection failed', e);
+      driver!.setVelocityCommand(0, 0);
       return;
     }
     detectMs = performance.now() - ts;
@@ -85,6 +89,7 @@ export function createApp(deps: { video: HTMLVideoElement; detector: PoseDetecto
 
     const detDt = lastDetectS === null ? 0 : nowS - lastDetectS;
     lastDetectS = nowS;
+    watchdogTripped = false;
     if (detDt > 0) fps = fps ? fps + FPS_ALPHA * (1 / detDt - fps) : 1 / detDt;
 
     if (settings.mode === 'auto') {
@@ -105,6 +110,10 @@ export function createApp(deps: { video: HTMLVideoElement; detector: PoseDetecto
     if (video.currentTime !== lastVideoTime) {
       lastVideoTime = video.currentTime;
       detectStep();
+    }
+    if (settings.mode === 'auto' && !watchdogTripped && lastDetectS !== null && nowS - lastDetectS > WATCHDOG_S) {
+      watchdogTripped = true;
+      driver!.setVelocityCommand(0, 0);
     }
     if (settings.mode === 'manual') {
       const out = controller.step(controllerInput(dt));

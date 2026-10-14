@@ -24,3 +24,12 @@ describe('closed loop presets', () => {
     expect(settlingTime(step10(PRESETS.slow), 1)).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe('closed loop comes to rest', () => {
+  test('good preset: platform stops after a 10° step', () => {
+    const tr = simulate({ gains: PRESETS.good, target: () => 10, durationS: 30 });
+    const tail = tr.angle.slice(-60); // last 2 s at 30 Hz
+    expect(Math.max(...tail) - Math.min(...tail)).toBeLessThan(0.01);
+    expect(Math.abs(tail[tail.length - 1] - 10)).toBeLessThanOrEqual(0.7 + 1e-6);
+  });
+});

@@ -47,6 +47,14 @@ export class Pid {
     }
     this.prevMeasurement = measurement;
     const d = -kd * this.dFiltered;
+
+    // Inside the deadband hold the integral and only damp motion; otherwise the
+    // frozen integral keeps pushing and the platform hunts forever.
+    if (error === 0) {
+      this.lastOutput = clamp(d, outputLimit) + 0; // + 0 normalises -0
+      return this.lastOutput;
+    }
+
     const p = kp * error;
 
     // Conditional integration: skip when it would push further into saturation.

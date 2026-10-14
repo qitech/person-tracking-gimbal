@@ -1,8 +1,9 @@
-export type StatusKind = 'loading' | 'cameraDenied' | 'cameraNotFound' | 'unsupported' | 'error' | 'noPerson' | 'none';
+export type StatusKind = 'loading' | 'cameraDenied' | 'cameraNotFound' | 'cameraBusy' | 'unsupported' | 'error' | 'noPerson' | 'none';
 
 const MESSAGES: Partial<Record<StatusKind, string>> = {
   cameraDenied: 'Немає доступу до камери. Дозвольте доступ у налаштуваннях браузера і натисніть «Спробувати ще раз».',
   cameraNotFound: 'Камеру не знайдено. Підключіть камеру і натисніть «Спробувати ще раз».',
+  cameraBusy: 'Камера зайнята іншою програмою (наприклад, Zoom чи Teams). Закрийте її і натисніть «Спробувати ще раз».',
   unsupported: 'Ваш браузер не підтримує потрібні технології. Відкрийте демо в Chrome або Edge.',
   error: 'Щось пішло не так. Спробуйте оновити сторінку.',
 };
@@ -33,7 +34,7 @@ export class StatusOverlay {
       }
     } else if (kind !== this.current) {
       const box = this.box(MESSAGES[kind]!, false);
-      if (kind === 'cameraDenied' || kind === 'cameraNotFound') {
+      if (kind === 'cameraDenied' || kind === 'cameraNotFound' || kind === 'cameraBusy') {
         const b = document.createElement('button');
         b.className = 'btn active';
         b.type = 'button';
