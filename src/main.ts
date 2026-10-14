@@ -4,6 +4,7 @@ import { CameraError, startCamera } from './camera/camera';
 import { PoseDetector } from './detection/poseDetector';
 import { Charts } from './ui/charts';
 import { Controls } from './ui/controls';
+import { DebugPanel } from './ui/debugPanel';
 import { Gimbal3D } from './ui/gimbal3d';
 import { Overlay } from './ui/overlay';
 import { StatusOverlay, type StatusKind } from './ui/status';
@@ -113,6 +114,7 @@ async function main() {
   const metrics = $('#metrics');
   const stages = [$('#full'), $('#virtual-stage')];
   bindKeyboard(app);
+  const debug = location.search.includes('debug') ? new DebugPanel(video, $('#full'), $<HTMLCanvasElement>('#overlay')) : null;
 
   $('#presentation-toggle').addEventListener('click', () => {
     document.body.classList.toggle('presentation');
@@ -130,6 +132,7 @@ async function main() {
     gimbal3d.render(s);
     charts.push(s);
     controls.render(s);
+    debug?.render(s);
 
     if (!lastSeenS || s.people.length) lastSeenS = s.nowS;
     if (!cameraLost) status.show(s.nowS - lastSeenS > NO_PERSON_DELAY_S ? 'noPerson' : 'none');
