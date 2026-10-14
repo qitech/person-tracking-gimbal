@@ -125,6 +125,7 @@ export function createApp(deps: { video: HTMLVideoElement; detector: PoseDetecto
         ? { pan: targetAngles.pan - g.pan, tilt: targetAngles.tilt - g.tilt }
         : null,
       fov: model!.fovWindow(g.pan, g.tilt),
+      virtHfovDeg: model!.virtHfovDeg,
       aimMode: settings.aimMode,
       metrics: { fps, detectMs, delegate: detector.delegate },
     };

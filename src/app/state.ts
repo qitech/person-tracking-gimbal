@@ -42,6 +42,8 @@ export interface FrameSnapshot {
   limits: GimbalLimits;
   error: { pan: number; tilt: number } | null;
   fov: Rect;
+  /** Effective (clamped) virtual camera HFOV. */
+  virtHfovDeg: number;
   aimMode: AimMode;
   metrics: { fps: number; detectMs: number; delegate: 'GPU' | 'CPU' };
 }
