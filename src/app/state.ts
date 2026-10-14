@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   servo: { maxVel: 180, maxAccel: 600, delayS: 0.06 },
   physHfovDeg: 70,
   virtHfovDeg: 35,
-  aimMode: 'torso',
+  aimMode: 'head',
   smoothingAlpha: 0.5,
   presentation: false,
   manual: { pan: 0, tilt: 0 },
