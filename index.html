@@ -4,9 +4,40 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Трекінг людини: віртуальна поворотна камера</title>
+    <link rel="stylesheet" href="/src/ui/layout.css" />
   </head>
   <body>
-    <div id="app"></div>
+    <header class="topbar">
+      <h1>Трекінг людини <span>віртуальна поворотна камера</span></h1>
+      <div class="topbar-right">
+        <div id="metrics" class="metrics"></div>
+        <button id="presentation-toggle" class="btn ghost" type="button">Режим презентації</button>
+      </div>
+    </header>
+    <main class="grid">
+      <section class="panel p-full">
+        <div class="panel-title">Повний кадр камери <small>клік по людині — зробити ціллю</small></div>
+        <div class="stage" id="full">
+          <video id="video" playsinline muted></video>
+          <canvas id="overlay"></canvas>
+          <div id="hint" class="hint" hidden></div>
+        </div>
+      </section>
+      <section class="panel p-virtual">
+        <div class="panel-title">Вигляд з поворотної камери</div>
+        <div class="stage" id="virtual-stage"><canvas id="virtual"></canvas></div>
+      </section>
+      <section class="panel p-gimbal">
+        <div class="panel-title">Поворотна платформа <small>обертайте мишкою</small></div>
+        <div class="stage" id="gimbal3d"></div>
+      </section>
+      <section class="panel p-charts">
+        <div class="panel-title">Графіки</div>
+        <div id="charts"></div>
+      </section>
+      <section class="panel p-controls" id="controls"></section>
+    </main>
+    <div id="status" class="status" hidden></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
