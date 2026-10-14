@@ -8,7 +8,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
 
-await cp(join(root, 'node_modules/@mediapipe/tasks-vision/wasm'), join(root, 'public/wasm'), { recursive: true });
+// Only the classic (non-module) builds are loaded by FilesetResolver.forVisionTasks(base).
+await cp(join(root, 'node_modules/@mediapipe/tasks-vision/wasm'), join(root, 'public/wasm'), {
+  recursive: true,
+  filter: (src) => !src.includes('_module_'),
+});
 
 const modelPath = join(root, 'public/models/pose_landmarker_lite.task');
 const exists = await stat(modelPath).then(() => true, () => false);
