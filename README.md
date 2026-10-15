@@ -2,7 +2,9 @@
 
 Браузерне демо системи супроводу людини поворотною камерою (pan/tilt). Камера знаходить людину в кадрі, а регулятор повертає платформу так, щоб людина залишалася в центрі поля зору.
 
-**Демо:** https://qitech.github.io/person-tracking-gimbal/ · **Відео:** _посилання на відео-демо_
+**Демо:** https://qitech.github.io/person-tracking-gimbal/ · **Відео:** https://qitech.github.io/person-tracking-gimbal/video.html
+
+[![Відео-демо](public/media/demo-poster.jpg)](https://qitech.github.io/person-tracking-gimbal/video.html)
 
 Працює повністю в браузері, без сервера. Потрібні камера і Chrome або Edge.
 
